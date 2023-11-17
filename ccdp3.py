@@ -6,6 +6,7 @@
 # Práctica: Resolución de la cinemática inversa mediante CCD
 #           (Cyclic Coordinate Descent).
 
+import time
 import sys
 from math import *
 import numpy as np
@@ -58,6 +59,12 @@ def cin_dir(th,a):
     o.append([tmp[0],tmp[1]])
   return o
 
+def camino_corto(diferencia):
+  if (diferencia > pi): 
+    return (diferencia - 2*pi)
+  else:
+    return (diferencia + 2*pi)
+
 # ******************************************************************************
 # Cálculo de la cinemática inversa de forma iterativa por el método CCD
 
@@ -67,7 +74,7 @@ a =[5.,5.,5.]
 L = sum(a) # variable para representación gráfica
 EPSILON = .01
 
-#plt.ion() # modo interactivo
+plt.ion() # modo interactivo
 
 # introducción del punto para la cinemática inversa
 if len(sys.argv) != 3:
@@ -93,12 +100,16 @@ while (dist > EPSILON and abs(prev-dist) > EPSILON/100.):
     tan1 = atan2(objetivo[1] - O[i][len(th)-1-i][1],
                  objetivo[0] - O[i][len(th)-1-i][0])
 
-    #           Últimi punto        Punto de la articulacion iteracion
+    #           Último punto        Punto de la articulacion iteracion
     tan2 = atan2(O[i][len(th)][1] - O[i][len(th)-1-i][1],
                  O[i][len(th)][0] - O[i][len(th)-1-i][0])
-
-    th[len(th)-1-i] += tan1-tan2
-
+    
+    diferencia = tan1-tan2
+    if (-pi < diferencia > pi): 
+      th[len(th)-1-i] += camino_corto(diferencia)
+    else:
+      th[len(th)-1-i] += diferencia
+    #print("Valor del incremento: ",tan1-tan2)
     O.append(cin_dir(th,a))
 
   dist = np.linalg.norm(np.subtract(objetivo,O[-1][-1]))
@@ -108,6 +119,7 @@ while (dist > EPSILON and abs(prev-dist) > EPSILON/100.):
   print ("Distancia al objetivo = " + str(round(dist,5)))
   iteracion+=1
   O[0]=O[-1]
+  time.sleep(0.5)
 
 if dist <= EPSILON:
   print ("\n" + str(iteracion) + " iteraciones para converger.")
