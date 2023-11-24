@@ -6,6 +6,7 @@
 # Práctica: Resolución de la cinemática inversa mediante CCD
 #           (Cyclic Coordinate Descent).
 
+import math
 import time
 import sys
 from math import *
@@ -62,8 +63,34 @@ def cin_dir(th,a):
 def camino_corto(diferencia):
   if (diferencia > pi): 
     return (diferencia - 2*pi)
-  else:
+  elif(diferencia < pi*-1):
     return (diferencia + 2*pi)
+  return diferencia
+  
+def maximo_angulo(limiteAngulo,angulo):
+  #print("Ángulo en radianes",angulo)
+  # Opcion que indica que no tiene limite de movimiento
+  if(limiteAngulo == 0):
+    return angulo
+  else:
+    limite_rad = math.radians(limiteAngulo)
+    # Caso ángulo negativo
+    if(angulo < 0):
+      limite_rad = limite_rad * -1
+      #print("Limite en radianes",limite_rad)
+      # Ángulo mayor que limite (como es negativo se devuelve el ángulo)
+      if(limite_rad < angulo):
+        return angulo
+      # Ángulo menor que limite (como es negativo se devuelve el límite)
+      else:
+        return limite_rad
+    else:
+      #print("Limite en radianes",limite_rad)
+      if(limite_rad < angulo):
+        return limite_rad
+      else:
+        return angulo
+  
 
 # ******************************************************************************
 # Cálculo de la cinemática inversa de forma iterativa por el método CCD
@@ -86,6 +113,8 @@ O=cin_dir(th,a)
 print ("- Posicion inicial:")
 muestra_origenes(O)
 
+limiteAngulo = 90
+
 dist = float("inf")
 prev = 0.
 iteracion = 1
@@ -105,10 +134,12 @@ while (dist > EPSILON and abs(prev-dist) > EPSILON/100.):
                  O[i][len(th)][0] - O[i][len(th)-1-i][0])
     
     diferencia = tan1-tan2
-    if (-pi < diferencia > pi): 
-      th[len(th)-1-i] += camino_corto(diferencia)
-    else:
-      th[len(th)-1-i] += diferencia
+    if((th[len(th)-1-i] + maximo_angulo(limiteAngulo,camino_corto(diferencia))) > math.radians(limiteAngulo)):
+      th[len(th)-1-i] = math.radians(limiteAngulo)
+    elif((th[len(th)-1-i] + maximo_angulo(limiteAngulo,camino_corto(diferencia))) < -math.radians(limiteAngulo)):
+      th[len(th)-1-i] = -(math.radians(limiteAngulo))
+    th[len(th)-1-i] += maximo_angulo(limiteAngulo,camino_corto(diferencia))
+    print("Tetha: ",maximo_angulo(limiteAngulo,camino_corto(diferencia)))
     #print("Valor del incremento: ",tan1-tan2)
     O.append(cin_dir(th,a))
 
